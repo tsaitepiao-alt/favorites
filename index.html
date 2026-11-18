@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>我的最愛</title>
+<style>
+:root{--bg:#0e1116;--panel:#151b24;--line:#242f3d;--fg:#e8eef7;--dim:#8494a8;--acc:#37b6ff}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--fg);font:15px/1.6 -apple-system,"PingFang TC","Noto Sans TC",sans-serif;padding:28px 18px 60px}
+.wrap{max-width:900px;margin:0 auto}
+h1{font-size:26px;letter-spacing:.02em;margin-bottom:6px}
+.sub{color:var(--dim);font-size:13px;margin-bottom:22px}
+#q{width:100%;background:var(--panel);border:1px solid var(--line);color:var(--fg);
+   border-radius:12px;padding:12px 16px;font-size:15px;outline:none;margin-bottom:22px}
+#q:focus{border-color:var(--acc)}
+.tags{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:20px}
+.tag{background:var(--panel);border:1px solid var(--line);color:var(--dim);padding:6px 14px;
+     border-radius:999px;font-size:13px;cursor:pointer}
+.tag.on{border-color:var(--acc);color:var(--fg)}
+.card{display:block;background:var(--panel);border:1px solid var(--line);border-radius:14px;
+      padding:18px 20px;margin-bottom:12px;text-decoration:none;color:inherit;transition:.15s}
+.card:hover{border-color:var(--acc);transform:translateY(-2px)}
+.card .top{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
+.card .t{font-size:18px;font-weight:700}
+.card .u{font-size:12px;color:var(--acc);word-break:break-all}
+.card .tg{font-size:11px;border:1px solid #2d3a4b;border-radius:6px;padding:2px 8px;color:var(--dim)}
+.card .d{color:var(--dim);font-size:13.5px;margin-top:9px}
+.card .w{margin-top:10px;font-size:12.5px;color:#9db2c9;border-left:3px solid #2b6ea8;
+         padding-left:10px;background:rgba(55,182,255,.06);border-radius:0 8px 8px 0;padding:7px 10px}
+.empty{color:var(--dim);text-align:center;padding:40px 0}
+footer{margin-top:34px;color:#5c6b80;font-size:12px;border-top:1px solid var(--line);padding-top:14px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>我的最愛</h1>
+  <div class="sub" id="sub">載入中…</div>
+  <input id="q" placeholder="搜尋標題、網址或說明…" autocomplete="off">
+  <div class="tags" id="tags"></div>
+  <div id="list"></div>
+  <footer>要加新的連結：跟我說「把 <em>網址</em> 加入我的最愛」，我會 append 進大愛清單並重新部署。</footer>
+</div>
+<script>
+let DATA=[], curTag=null;
+const $=s=>document.querySelector(s);
+const esc=s=>String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+
+fetch("data/favorites.json").then(r=>r.json()).then(d=>{
+  DATA=d.items||[];
+  $("#sub").textContent=`${DATA.length} 個連結 · 更新於 ${d.updated||"-"}`;
+  const tags=[...new Set(DATA.map(x=>x.tag).filter(Boolean))];
+  $("#tags").innerHTML=`<div class="tag on" data-t="">全部</div>`+
+    tags.map(t=>`<div class="tag" data-t="${esc(t)}">${esc(t)}</div>`).join("");
+  $("#tags").onclick=e=>{
+    const el=e.target.closest(".tag"); if(!el)return;
+    document.querySelectorAll(".tag").forEach(x=>x.classList.remove("on"));
+    el.classList.add("on"); curTag=el.dataset.t||null; render();
+  };
+  render();
+});
+
+function render(){
+  const q=($("#q").value||"").trim().toLowerCase();
+  const list=DATA.filter(x=>{
+    if(curTag && x.tag!==curTag) return false;
+    if(!q) return true;
+    return (x.title+" "+x.url+" "+(x.desc||"")+" "+(x.why||"")).toLowerCase().includes(q);
+  });
+  if(!list.length){ $("#list").innerHTML=`<div class="empty">沒有符合的連結</div>`; return; }
+  $("#list").innerHTML=list.map(x=>`
+    <a class="card" href="${esc(x.url)}" target="_blank" rel="noopener">
+      <div class="top">
+        <span class="t">${esc(x.title)}</span>
+        ${x.tag?`<span class="tg">${esc(x.tag)}</span>`:""}
+        ${x.lang?`<span class="tg">${esc(x.lang)}</span>`:""}
+        <span class="u">${esc(x.url.replace(/^https?:\/\//,''))}</span>
+      </div>
+      <div class="d">${esc(x.desc||"")}</div>
+      ${x.why?`<div class="w">${esc(x.why)}</div>`:""}
+    </a>`).join("");
+}
+$("#q").addEventListener("input",()=>{clearTimeout(window._t);window._t=setTimeout(render,140);});
+</script>
+</body>
+</html>

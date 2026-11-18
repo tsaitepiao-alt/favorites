@@ -1,0 +1,15 @@
+{
+ "updated": "2026-11-18",
+ "items": [
+  {
+   "id": "learn-esp32",
+   "title": "Learn ESP32",
+   "url": "https://learn-esp32.vercel.app/",
+   "tag": "教學",
+   "desc": "3D 互動式 ESP32 教學，20 堂課。不用接線、不用買板，直接在網頁上跑：點亮 LED、冰箱警報、超音波測距、藍牙對講、太陽能追日、雷達、取放機械臂。",
+   "why": "拿來當 HOLO-CUBE 與頸環的教學素材參考；它的「免接線即上手」正是我們韌體 bring-up 該追求的體驗。",
+   "lang": "EN",
+   "added": "2026-11-18"
+  }
+ ]
+}
